@@ -13,6 +13,7 @@ CMakeUserPresets.json
 
 # Ignore CMake output
 out/
+build/
 
 # Ignore .vs
 .vs/
