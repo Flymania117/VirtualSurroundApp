@@ -42,4 +42,4 @@ Because the application uses loopback capture, we recommend [VB-Cable](https://v
 
 ### Using the app
 
-All you need to do is run the executable and follow the prompts given by the application, bearing in mind the configuration you set in the [Pre-use checks](pre-use-checks).
+All you need to do is run the executable and follow the prompts given by the application, bearing in mind the configuration you set in the [Pre-use checks](#pre-use-checks).
