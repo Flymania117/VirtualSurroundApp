@@ -3,7 +3,7 @@ name: Issue
 about: Report bugs or unintended behavior
 title: ''
 labels: ''
-assignees: Flymania117
+assignees: ''
 
 ---
 
