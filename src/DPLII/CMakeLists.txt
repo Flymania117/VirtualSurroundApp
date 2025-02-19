@@ -10,5 +10,5 @@ add_library(DPLII_lib
 
 message(STATUS ${PROJECT_SOURCE_DIR})
 
-target_include_directories(DPLII_lib PUBLIC ${INCLUDE_ROOT}/DPLII) # Include DPLII headers
-target_link_libraries(DPLII_lib DSP_lib) # Link with the library
+target_include_directories(DPLII_lib PUBLIC ${INCLUDE_ROOT}/DPLII)
+target_link_libraries(DPLII_lib DSP_lib Devices_lib)

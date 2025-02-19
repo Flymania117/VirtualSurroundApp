@@ -5,17 +5,19 @@
 #include <functiondiscoverykeys_devpkey.h>
 #include <mmdeviceapi.h>
 #include <windows.h>
+#include <DPLIIVirtualSurroundDevice.h>
+#include <AudioDeviceEnumerator.h>
 
 class DPLIIVirtualSurroundConsoleApplication {
 public:
-    DPLIIVirtualSurroundConsoleApplication();
-    ~DPLIIVirtualSurroundConsoleApplication();
+    DPLIIVirtualSurroundConsoleApplication() = default;
+    ~DPLIIVirtualSurroundConsoleApplication() = default;
 
     void Start();
 
 private:
     void Run();
+    DPLIIVirtualSurroundDevice device;
     IMMDeviceCollection* GetCompatibleDevices();
-    HRESULT GetInputAndOutputDevices(IMMDeviceCollection* devices, UINT deviceCount, IMMDevice*& inputDevice, IMMDevice*& outputDevice);
-    HRESULT EnumerateAvailableDevices(IMMDeviceEnumerator* enumerator, IMMDeviceCollection*& devices, UINT& deviceCount);
+    void GetInputAndOutputDevices(IMMDevice*& inputDevice, IMMDevice*& outputDevice);
 };
