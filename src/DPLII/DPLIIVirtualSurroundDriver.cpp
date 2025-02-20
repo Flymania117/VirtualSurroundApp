@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "DPLIIVirtualSurroundDriver.h"
 #include "BiQuadFilter.h"
 #include "Delay.h"
@@ -75,8 +77,8 @@ DPLIIVirtualSurroundDriver::DPLIIVirtualSurroundDriver(float sampleRate) {
     _phaseRotatorR = PhaseRotator(255);
 
     // Delay for surrounds
-    _surroundDelayL = Delay((int)sampleRate, 10.0f);
-    _surroundDelayR = Delay((int)sampleRate, 10.0f);
+    _surroundDelayL = Delay((int)sampleRate, 7.0f);
+    _surroundDelayR = Delay((int)sampleRate, 7.0f);
 
 
     // ENHANCEMENTS
@@ -99,10 +101,10 @@ DPLIIVirtualSurroundDriver::DPLIIVirtualSurroundDriver(float sampleRate) {
 
 
     // 1ms delay for crosstalk enhancement
-    _crosstalkDelayL = Delay((int)sampleRate, 1.0f);
-    _crosstalkDelayR = Delay((int)sampleRate, 1.0f);
-    _crosstalkDelaySL = Delay((int)sampleRate, 1.0f);
-    _crosstalkDelaySR = Delay((int)sampleRate, 1.0f);
+    _crosstalkDelayL = Delay((int)sampleRate, 0.5f);
+    _crosstalkDelayR = Delay((int)sampleRate, 0.5f);
+    _crosstalkDelaySL = Delay((int)sampleRate, 0.4f);
+    _crosstalkDelaySR = Delay((int)sampleRate, 0.4f);
 
     // LFE delay for spill into surround
     _surroundDelayLFE = Delay((int)sampleRate, 20.0f);
@@ -116,22 +118,18 @@ void DPLIIVirtualSurroundDriver::ProcessSample(float frontLeft, float frontRight
     // Process center channel
     center *= CENTER_ATTENUATION;
 
-    frontLeft *= 0.7071f;
-    frontRight *= 0.7071f;
-
     // Process surround channels
     auto sLfe = _surroundDelayLFE.Process(lfeOut);
     auto slBandpassed = _surroundCrossoverL.Process(surroundLeft) + sLfe;
     auto srBandpassed = _surroundCrossoverR.Process(surroundRight) + sLfe;
 
     // Apply 90° phase shifts and attenuation
-    auto slRotated = -_phaseRotatorL.ProcessSamplePositive(slBandpassed) * SURROUND_MATCH_ATTENUATION; // Positive 90 phase shift
-    auto srRotated = _phaseRotatorR.ProcessSamplePositive(srBandpassed) * SURROUND_OPPOSITE_ATTENUATION; // Positive 90 phase shift
-
+    auto slRotated = -_phaseRotatorL.ProcessSample(slBandpassed);
+    auto srRotated = _phaseRotatorR.ProcessSample(srBandpassed);
 
     // Apply delay to surrounds
-    auto slDelayed = _surroundDelayL.Process(slRotated);
-    auto srDelayed = _surroundDelayR.Process(srRotated);
+    auto slDelayed = _surroundDelayL.Process(slRotated) * SURROUND_ATTENUATION;
+    auto srDelayed = _surroundDelayR.Process(srRotated) * SURROUND_ATTENUATION;
 
     // Experiments
     array<float, 4> rmsValues = CalculateRMSForAllChannels(frontLeft, frontRight, slDelayed, srDelayed);
@@ -223,22 +221,22 @@ void DPLIIVirtualSurroundDriver::SurroundChannelCrosstalk(float left, float righ
 {
     auto slCrosstalkAP = _crosstalkAllPassSL.Process(left);
     auto slCrosstalkLP = _crosstalkFilterSL.Process(slCrosstalkAP);
-    slCrosstalk = _crosstalkDelaySL.Process(slCrosstalkLP) * CROSSTALK_ATTENUATION;
+    slCrosstalk = _crosstalkDelaySL.Process(slCrosstalkLP) * CROSSTALK_RATIO;
 
     auto srCrosstalkAP = _crosstalkAllPassSR.Process(right);
     auto srCrosstalkLP = _crosstalkFilterSR.Process(srCrosstalkAP);
-    srCrosstalk = _crosstalkDelaySR.Process(srCrosstalkLP) * CROSSTALK_ATTENUATION;
+    srCrosstalk = _crosstalkDelaySR.Process(srCrosstalkLP) * CROSSTALK_RATIO;
 }
 
 void DPLIIVirtualSurroundDriver::FrontChannelCrosstalk(float left, float right, float& lCrosstalk, float& rCrosstalk)
 {
     auto lCrosstalkAP = _crosstalkAllPassL.Process(left);
     auto lCrosstalkLP = _crosstalkFilterL.Process(lCrosstalkAP);
-    lCrosstalk = _crosstalkDelayL.Process(lCrosstalkLP) * CROSSTALK_ATTENUATION;
+    lCrosstalk = _crosstalkDelayL.Process(lCrosstalkLP) * CROSSTALK_RATIO;
 
     auto rCrosstalkAP = _crosstalkAllPassR.Process(right);
     auto rCrosstalkLP = _crosstalkFilterR.Process(rCrosstalkAP);
-    rCrosstalk = _crosstalkDelayR.Process(rCrosstalkLP) * CROSSTALK_ATTENUATION;
+    rCrosstalk = _crosstalkDelayR.Process(rCrosstalkLP) * CROSSTALK_RATIO;
 }
 
 void DPLIIVirtualSurroundDriver::SmoothRMSChange(array<float, 4>& targetRms)

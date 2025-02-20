@@ -1,12 +1,11 @@
 #include "BiQuadFilter.h"
 #include "Filters.h"
 #include <array>
+#include <memory>
 
 using namespace std;
 
-BiQuadFilter::BiQuadFilter(EQFilterCurve* curve) {
-	_curve = curve;
-}
+BiQuadFilter::BiQuadFilter(shared_ptr<EQFilterCurve> curve) : _curve(curve) { }
 
 void BiQuadFilter::SetCoefficients(float frequency, float Q, float gain, uint32_t sampleRate) {
 	_curve->SetCoefficients(frequency, Q, gain, sampleRate);
@@ -30,13 +29,13 @@ float BiQuadFilter::Process(float input) {
 }
 
 BiQuadFilter BiQuadFilter::CreateLowPass(float sampleRate, float cutoff, float q) {
-	return BiQuadFilter(new LowPassFilter(cutoff, q, sampleRate));
+	return BiQuadFilter(make_shared<LowPassFilter>(cutoff, q, sampleRate));
 }
 
 BiQuadFilter BiQuadFilter::CreateHighPass(float sampleRate, float cutoff, float q) {
-	return BiQuadFilter(new HighPassFilter(cutoff, q, sampleRate));
+	return BiQuadFilter(make_shared<HighPassFilter>(cutoff, q, sampleRate));
 }
 
 BiQuadFilter BiQuadFilter::CreateAllPass(float sampleRate, float cutoff, float q) {
-	return BiQuadFilter(new AllPassFilter(cutoff, q, sampleRate));
+	return BiQuadFilter(make_shared<AllPassFilter>(cutoff, q, sampleRate));
 }
