@@ -7,8 +7,8 @@ class Delay {
 private:
     vector<float> _buffer;
     int _writeIndex;
-    int _delaySamples;
-    int _bufferSize; // Keep track of the buffer size
+    int _readIndex;
+    int _bufferSize;
 
 public:
     Delay() = default;
@@ -16,8 +16,5 @@ public:
     ~Delay() = default;
 
     float Process(float x);
-    void SetDelay(float delayMs);
-    
-    float GetDelay();
 };
 

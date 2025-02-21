@@ -1,6 +1,5 @@
-#include <windows.h>
-#include <corecrt_math.h>
-#include <corecrt_math_defines.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "Filters.h"
 
 using namespace std;
