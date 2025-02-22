@@ -1,48 +1,51 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "PhaseRotator.h"
-#include <complex>
-
-using namespace std;
+#include <algorithm>
+#include <functional>
 
 PhaseRotator::PhaseRotator(int filterLength)
-    : filterLength_(filterLength),
-    buffer_(filterLength, 0.0f),
-    bufferIndex_(0)
 {
-    if (filterLength_ % 2 == 0) {
-        filterLength_++;
-        buffer_.resize(filterLength_, 0.0f);
-    }
-    delay_ = (filterLength_ - 1) / 2;
-    coeffs_.resize(filterLength_, 0.0f);
-
-    for (int n = 0; n < filterLength_; n++) {
-        int k = n - delay_;
-        float h = 0.0f;
-        if (k == 0) {
-            h = 0.0f;
-        }
-        else if (k % 2 == 0) {
-            h = 0.0f;
-        }
-        else {
-            h = 2.0f / (M_PI * k);
-        }
-        float w = 0.54f - 0.46f * cos(2.0f * M_PI * n / (filterLength_ - 1));
-        coeffs_[n] = h * w;
-    }
+    _coefficients = GenerateHilbertFilter(filterLength);
+    _inputBuffer = vector<float>(filterLength);
+    _bufferIndex = 0;
 }
 
-float PhaseRotator::ProcessSample(float x) {
-    buffer_[bufferIndex_] = x;
-    bufferIndex_ = (bufferIndex_ + 1) % filterLength_;
+vector<float> PhaseRotator::GenerateHilbertFilter(int length)
+{
+    auto coefficients = vector<float>(length);
+    int center = length / 2;
 
-    float y = 0.0f;
-    int index = bufferIndex_;
-    for (int i = 0; i < filterLength_; i++) {
-        y += coeffs_[i] * buffer_[index];
-        index = (index + 1) % filterLength_;
+    for (int n = 0; n < length; n++)
+    {
+        int k = n - center;
+        if (k == 0)
+        {
+            coefficients[n] = 0.0f;  // Hilbert Transform has 0 at center
+        }
+        else if (k % 2 != 0)  // Only compute for odd indices
+        {
+            coefficients[n] = (2.0f / (M_PI * k)) * sin(M_PI * k / 2.0);
+        }
+        else
+        {
+            coefficients[n] = 0.0f;  // Zero for even indices
+        }
     }
-    return y;
+
+    return coefficients;
+}
+
+float PhaseRotator::ProcessSample(float x)
+{
+    _inputBuffer[_bufferIndex] = x;
+    _bufferIndex = (_bufferIndex + 1) % _inputBuffer.size();
+
+    float output = 0;
+    for (int i = 0; i < _coefficients.size(); i++)
+    {
+        int index = (_bufferIndex + i) % _inputBuffer.size();
+        output += _coefficients[i] * _inputBuffer[index];
+    }
+    return output;
 }
