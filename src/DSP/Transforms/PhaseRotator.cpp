@@ -18,9 +18,18 @@ vector<float> PhaseRotator::GenerateHilbertFilter(int length)
 
     for (int n = 0; n < length; n++)
     {
-        if (n != center)
+        int k = n - center;
+        if (k == 0)
         {
-            coefficients[n] = 2.0 / M_PI * sin(M_PI * (n - center) / 2.0) / (n - center);
+            coefficients[n] = 0.0f;  // Hilbert Transform has 0 at center
+        }
+        else if (k % 2 != 0)  // Only compute for odd indices
+        {
+            coefficients[n] = (2.0f / (M_PI * k)) * sin(M_PI * k / 2.0);
+        }
+        else
+        {
+            coefficients[n] = 0.0f;  // Zero for even indices
         }
     }
 
